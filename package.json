@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "npx tsx tests/phase1-foundation.test.ts && npx tsx tests/phase2-auth.test.ts"
+    "test": "npx tsx tests/phase1-foundation.test.ts && npx tsx tests/phase2-auth.test.ts && npx tsx tests/phase7-webhook.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
