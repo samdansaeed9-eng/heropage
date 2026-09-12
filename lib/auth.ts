@@ -6,7 +6,14 @@ const COOKIE_NAME = "heropage_session";
 const SESSION_EXPIRATION = "7d";
 
 function getSessionSecret(): Uint8Array {
-  const secret = process.env.SESSION_SECRET || "super-secret-session-key-change-me-in-production-min-32-chars";
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SESSION_SECRET environment variable is required in production");
+    }
+    console.warn("WARNING: SESSION_SECRET is not set. Using insecure development default.");
+    return new TextEncoder().encode("super-secret-session-key-change-me-in-production-min-32-chars");
+  }
   return new TextEncoder().encode(secret);
 }
 

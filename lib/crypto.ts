@@ -5,7 +5,14 @@ const IV_LENGTH = 12; // 96 bits for GCM
 const AUTH_TAG_LENGTH = 16; // 128 bits
 
 function getEncryptionKey(): Buffer {
-  const keyHex = process.env.ENCRYPTION_KEY || "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+  const keyHex = process.env.ENCRYPTION_KEY;
+  if (!keyHex) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ENCRYPTION_KEY environment variable is required in production");
+    }
+    console.warn("WARNING: ENCRYPTION_KEY is not set. Using insecure development default.");
+    return Buffer.from("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "hex");
+  }
   return Buffer.from(keyHex.padEnd(64, "0").slice(0, 64), "hex");
 }
 

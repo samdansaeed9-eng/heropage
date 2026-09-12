@@ -230,6 +230,7 @@ export function seedDemoDataForOrg(orgId: string, userId: string) {
     {
       id: `note_${orgId}_1`,
       contactId: contact1.id,
+      organizationId: orgId,
       userId,
       content: "Alex is an early VIP backer. Always prioritize express dispatch.",
       createdAt: pastHour,

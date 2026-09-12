@@ -99,6 +99,7 @@ export interface ContactLabelRecord {
 export interface ContactNoteRecord {
   id: string;
   contactId: string;
+  organizationId: string;
   userId: string;
   content: string;
   createdAt: string;

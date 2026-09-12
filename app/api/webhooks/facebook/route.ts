@@ -9,7 +9,14 @@ export async function GET(req: NextRequest) {
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
 
-  const expectedToken = process.env.META_VERIFY_TOKEN || "heropage_webhook_verify_token_123";
+  let expectedToken = process.env.META_VERIFY_TOKEN;
+  if (!expectedToken) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("META_VERIFY_TOKEN environment variable is required in production");
+    }
+    console.warn("WARNING: META_VERIFY_TOKEN is not set. Using insecure development default.");
+    expectedToken = "heropage_webhook_verify_token_123";
+  }
 
   // Meta Webhook Handshake Verification
   if (mode === "subscribe" && token === expectedToken) {
@@ -25,11 +32,19 @@ export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get("x-hub-signature-256");
-    const appSecret = process.env.META_APP_SECRET || "mock_meta_app_secret";
 
-    // Verify HMAC-SHA256 signature if in production or if app secret is set
+    let appSecret = process.env.META_APP_SECRET;
+    if (!appSecret) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("META_APP_SECRET environment variable is required in production");
+      }
+      console.warn("WARNING: META_APP_SECRET is not set. Using insecure development default.");
+      appSecret = "mock_meta_app_secret";
+    }
+
+    // Verify HMAC-SHA256 signature if in production or if signature header is present
     const isProduction = process.env.NODE_ENV === "production";
-    if (isProduction && signature) {
+    if (isProduction || signature) {
       const isValid = verifyMetaSignature(rawBody, signature, appSecret);
       if (!isValid) {
         console.error("[Meta Webhook] Invalid HMAC signature detected from caller");
@@ -78,8 +93,8 @@ export async function POST(req: NextRequest) {
             (p) => p.pageId === recipientPageId || p.pageId === pageFbId
           );
 
-          // Fallback to first active page if testing in development
-          if (!matchedPage && existingData.facebookPages.length > 0) {
+          // Fallback to first active page only when testing in non-production
+          if (!matchedPage && existingData.facebookPages.length > 0 && process.env.NODE_ENV !== "production") {
             matchedPage = existingData.facebookPages[0];
           }
 

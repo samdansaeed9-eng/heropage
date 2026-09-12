@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOrgContext, belongsToOrg } from "@/lib/authz";
 import { getDb } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return errorResponse("Unauthorized", 401);
+    const ctx = await requireOrgContext();
+    if (!ctx) return errorResponse("Unauthorized", 401);
 
     const { contactId, content } = await req.json();
     if (!contactId || !content?.trim()) {
@@ -15,10 +15,22 @@ export async function POST(req: NextRequest) {
     }
 
     const db = getDb();
+    const data = db.read();
+
+    const contact = data.contacts.find((c) => c.id === contactId);
+    if (!contact) {
+      return errorResponse("Contact not found", 404, "NOT_FOUND");
+    }
+
+    if (!belongsToOrg(contact.organizationId, ctx)) {
+      return errorResponse("Contact not found", 404, "NOT_FOUND");
+    }
+
     const newNote = {
       id: `note_${crypto.randomUUID()}`,
       contactId,
-      userId: user.id,
+      organizationId: ctx.organizationId,
+      userId: ctx.userId,
       content: content.trim(),
       createdAt: new Date().toISOString(),
     };

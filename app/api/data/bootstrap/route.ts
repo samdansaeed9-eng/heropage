@@ -28,8 +28,9 @@ export async function GET() {
   const templates = freshDb.templates.filter((t) => t.organizationId === orgId);
   const campaigns = freshDb.campaigns.filter((c) => c.organizationId === orgId);
   const savedReplies = freshDb.savedReplies.filter((s) => s.organizationId === orgId);
-  const contactNotes = freshDb.contactNotes;
-  const contactLabels = freshDb.contactLabels;
+  const orgContactIds = new Set(contacts.map((c) => c.id));
+  const contactNotes = freshDb.contactNotes.filter((n) => orgContactIds.has(n.contactId));
+  const contactLabels = freshDb.contactLabels.filter((cl) => orgContactIds.has(cl.contactId));
 
   const memberships = freshDb.memberships.filter((m) => m.organizationId === orgId);
   const teamUsers = freshDb.users.filter((u) => memberships.some((m) => m.userId === u.id)).map((u) => {

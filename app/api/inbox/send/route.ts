@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOrgContext, belongsToOrg } from "@/lib/authz";
 import { getDb } from "@/lib/db";
 import { successResponse, errorResponse } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return errorResponse("Unauthorized", 401);
+    const ctx = await requireOrgContext();
+    if (!ctx) return errorResponse("Unauthorized", 401);
 
     const { conversationId, text } = await req.json();
     if (!conversationId || !text?.trim()) {
@@ -19,6 +19,10 @@ export async function POST(req: NextRequest) {
 
     const conv = data.conversations.find((c) => c.id === conversationId);
     if (!conv) return errorResponse("Conversation not found", 404);
+
+    if (!belongsToOrg(conv.organizationId, ctx)) {
+      return errorResponse("Conversation not found", 404, "NOT_FOUND");
+    }
 
     const contact = data.contacts.find((c) => c.id === conv.contactId);
     const now = new Date().toISOString();
