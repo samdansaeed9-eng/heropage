@@ -34,7 +34,7 @@ export default function SignupPage() {
         throw new Error(json.error?.message || "Registration failed");
       }
 
-      router.push("/profile");
+      router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");

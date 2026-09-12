@@ -47,6 +47,7 @@ export async function GET() {
     organization: org,
     role: membership.role,
     pages,
+    facebookPages: pages,
     contacts,
     conversations,
     messages,

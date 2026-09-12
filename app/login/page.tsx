@@ -2,21 +2,24 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { MessageSquare, ArrowRight, Lock } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { MessageSquare, ArrowRight, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get("from") || "/dashboard";
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (loginEmail: string, loginPass: string) => {
     setError("");
     setIsLoading(true);
 
@@ -24,7 +27,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: loginEmail, password: loginPass }),
       });
 
       const json = await res.json();
@@ -32,13 +35,24 @@ export default function LoginPage() {
         throw new Error(json.error?.message || "Sign in failed");
       }
 
-      router.push("/profile");
+      router.push(redirectTarget);
       router.refresh();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    performLogin(email, password);
+  };
+
+  const handleDemoLogin = () => {
+    setEmail("founder@heropage.com");
+    setPassword("SuperPassword123!");
+    performLogin("founder@heropage.com", "SuperPassword123!");
   };
 
   return (
@@ -67,9 +81,40 @@ export default function LoginPage() {
               Enter your credentials to access your multi-page workspace.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* 1-Click Demo Login Box */}
+            <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-200/80 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-indigo-950 flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-indigo-600" />
+                  <span>Instant Demo Access</span>
+                </span>
+                <span className="text-[10px] text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded font-semibold">
+                  Pre-configured
+                </span>
+              </div>
+              <p className="text-[11px] text-indigo-800">
+                Log in instantly with seeded multi-page Messenger inbox, campaigns, and contacts.
+              </p>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleDemoLogin}
+                isLoading={isLoading}
+                className="w-full text-xs"
+              >
+                1-Click Demo Sign In
+              </Button>
+            </div>
+
+            <div className="relative flex items-center justify-center my-2">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-2 text-[11px] text-slate-400 uppercase font-bold">Or</span>
+            </div>
+
             {error && (
-              <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 font-medium">
+              <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700 font-medium">
                 {error}
               </div>
             )}
@@ -78,7 +123,7 @@ export default function LoginPage() {
               <Input
                 label="Email"
                 type="email"
-                placeholder="name@company.com"
+                placeholder="founder@heropage.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -109,5 +154,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<LoadingState message="Loading login..." />}>
+      <LoginForm />
+    </React.Suspense>
   );
 }

@@ -70,8 +70,14 @@ function InboxContent() {
     return <LoadingState message="Loading conversations & messenger stream..." />;
   }
 
-  const { conversations, contacts, messages, facebookPages, labels, contactLabels, contactNotes, savedReplies } =
-    data;
+  const conversations = data?.conversations || [];
+  const contacts = data?.contacts || [];
+  const messages = data?.messages || [];
+  const facebookPages = data?.pages || data?.facebookPages || [];
+  const labels = data?.labels || [];
+  const contactLabels = data?.contactLabels || [];
+  const contactNotes = data?.contactNotes || [];
+  const savedReplies = data?.savedReplies || [];
 
   // Filter conversations
   const filteredConversations = conversations.filter((conv: any) => {
