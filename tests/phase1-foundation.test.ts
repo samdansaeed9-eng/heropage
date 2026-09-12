@@ -1,5 +1,5 @@
 import assert from "assert";
-import { encryptToken, decryptToken, verifyMetaSignature } from "../lib/crypto.ts";
+import { encryptToken, decryptToken, verifyMetaSignature } from "../lib/crypto";
 import crypto from "crypto";
 
 console.log("--- Starting Phase 1 Foundation Tests ---");

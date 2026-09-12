@@ -34,6 +34,7 @@ yarn-error.log*
 next-env.d.ts
 
 # SQLite / local DB files
+/data/
 *.db
 *.sqlite
 *.sqlite3
