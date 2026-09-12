@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { seedDemoDataForOrg } from "@/lib/seed";
 import { successResponse, errorResponse } from "@/lib/api-response";
 
 export async function GET() {
@@ -18,6 +19,11 @@ export async function GET() {
       role: mem?.role || "VIEWER",
     };
   });
+
+  // Automatically seed demo data for the first organization if empty
+  if (organizations.length > 0) {
+    seedDemoDataForOrg(organizations[0].id, user.id);
+  }
 
   return successResponse({
     user,
